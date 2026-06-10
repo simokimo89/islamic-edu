@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🕌 لعبة التربية الإسلامية</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#ffd700;--green:#43e97b;--red:#ff6b6b;--blue:#4ecdc4;
+  --purple:#a29bfe;--pink:#fd79a8;--card-bg:rgba(255,255,255,.07);
+  --border:rgba(255,255,255,.15);
+}
+body{
+  font-family:'Tajawal',Tahoma,sans-serif;
+  background:linear-gradient(135deg,#0d0d2b 0%,#1a1a4e 50%,#0d2b4e 100%);
+  min-height:100vh; direction:rtl; overflow-x:hidden;
+}
+/* STARS */
+#stars-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle var(--d) ease-in-out infinite alternate;}
+@keyframes twinkle{from{opacity:.15;transform:scale(1)}to{opacity:1;transform:scale(1.5)}}
+/* FLOATING */
+.float-deco{position:fixed;font-size:34px;pointer-events:none;z-index:1;
+  animation:floatDeco var(--d) ease-in-out infinite alternate;}
+@keyframes floatDeco{from{transform:translateY(0)rotate(0deg)}to{transform:translateY(-25px)rotate(20deg)}}
+/* APP */
+#app{position:relative;z-index:10;width:95%;max-width:700px;margin:0 auto;padding:20px 0 40px;}
+/* HEADER */
+.game-header{text-align:center;margin-bottom:18px;animation:slideDown .7s cubic-bezier(.34,1.56,.64,1);}
+@keyframes slideDown{from{opacity:0;transform:translateY(-40px)}to{opacity:1;transform:translateY(0)}}
+.game-title{
+  font-size:clamp(20px,5vw,34px);font-weight:900;
+  background:linear-gradient(90deg,#ffd700,#ff6b6b,#4ecdc4,#a29bfe,#ffd700);
+  background-size:400%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:gradMove 4s linear infinite;
+}
+@keyframes gradMove{0%{background-position:0%}100%{background-position:400%}}
+.subtitle{color:#a8d8ea;font-size:15px;margin-top:4px;}
+/* SCORE BAR */
+.score-bar{
+  display:flex;justify-content:space-around;align-items:center;
+  background:var(--card-bg);border:1px solid var(--border);border-radius:50px;
+  padding:10px 16px;margin-bottom:14px;backdrop-filter:blur(12px);
+  animation:slideDown .9s cubic-bezier(.34,1.56,.64,1);
+}
+.score-item{display:flex;align-items:center;gap:6px;color:#fff;font-size:14px;font-weight:700;}
+.score-val{color:var(--gold);font-size:19px;transition:transform .2s;}
+.score-val.bump{animation:bump .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes bump{0%,100%{transform:scale(1)}50%{transform:scale(1.5)}}
+/* PROGRESS */
+.progress-wrap{background:rgba(255,255,255,.1);border-radius:50px;height:10px;margin-bottom:18px;overflow:hidden;}
+.progress-bar{height:100%;border-radius:50px;background:linear-gradient(90deg,#4ecdc4,#a29bfe,#ffd700);transition:width .5s ease;position:relative;overflow:hidden;}
+.progress-bar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:shimmer 1.8s infinite;}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+/* CARD */
+.card{
+  background:var(--card-bg);backdrop-filter:blur(18px);
+  border:1.5px solid var(--border);border-radius:28px;
+  padding:28px 24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.1);
+  animation:cardIn .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes cardIn{from{opacity:0;transform:scale(.86) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.card.shake{animation:shake .45s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-14px)}75%{transform:translateX(14px)}}
+/* Q NUMBER */
+.q-number{
+  display:inline-block;background:linear-gradient(135deg,#667eea,#764ba2);
+  color:#fff;font-size:12px;font-weight:700;padding:5px 16px;border-radius:50px;
+  margin-bottom:16px;letter-spacing:.5px;
+}
+/* QUESTION */
+.question-text{font-size:clamp(16px,4vw,21px);font-weight:700;color:#fff;line-height:1.65;margin-bottom:24px;}
+/* OPTIONS */
+.options{display:flex;flex-direction:column;gap:11px;}
+.opt-btn{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 18px;border:2px solid var(--border);border-radius:16px;
+  background:rgba(255,255,255,.06);color:#e8f4f8;
+  font-family:'Tajawal',Tahoma,sans-serif;font-size:clamp(13px,3.5vw,16px);font-weight:600;
+  cursor:pointer;transition:all .2s;text-align:right;position:relative;overflow:hidden;
+}
+.opt-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent);opacity:0;transition:opacity .2s;}
+.opt-btn:hover:not(:disabled){border-color:#4ecdc4;background:rgba(78,205,196,.14);transform:translateX(-4px) scale(1.01);box-shadow:0 6px 20px rgba(78,205,196,.2);}
+.opt-btn:hover:not(:disabled)::before{opacity:1;}
+.opt-letter{
+  min-width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;color:#fff;flex-shrink:0;transition:transform .2s;
+}
+.opt-btn:hover:not(:disabled) .opt-letter{transform:scale(1.2);}
+.opt-btn.correct{background:linear-gradient(135deg,rgba(67,233,123,.28),rgba(56,249,215,.18));border-color:#43e97b;animation:correctPop .3s cubic-bezier(.34,1.56,.64,1);}
+.opt-btn.correct .opt-letter{background:linear-gradient(135deg,#43e97b,#38f9d7);}
+@keyframes correctPop{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+.opt-btn.wrong{background:linear-gradient(135deg,rgba(255,75,75,.22),rgba(255,120,50,.12));border-color:#ff4b4b;color:#ffaaaa;animation:wrongWiggle .3s ease;}
+.opt-btn.wrong .opt-letter{background:linear-gradient(135deg,#ff4b4b,#ff8c42);}
+@keyframes wrongWiggle{0%,100%{transform:translateX(0)}33%{transform:translateX(-8px)}66%{transform:translateX(8px)}}
+.opt-btn:disabled{cursor:default;}
+/* FEEDBACK */
+#feedback{margin-top:16px;font-size:22px;font-weight:900;text-align:center;min-height:36px;}
+/* CONFETTI */
+.confetti-piece{position:fixed;pointer-events:none;z-index:9999;border-radius:3px;animation:confettiFall var(--t) ease-in forwards;}
+@keyframes confettiFall{0%{transform:translateY(0)rotate(0deg);opacity:1}100%{transform:translateY(110vh)rotate(720deg);opacity:0}}
+.burst-emoji{position:fixed;pointer-events:none;z-index:9999;animation:burstOut .9s ease forwards;}
+@keyframes burstOut{0%{transform:translate(-50%,-50%)scale(0);opacity:1}60%{transform:translate(-50%,-50%)scale(1.4)}100%{transform:translate(-50%,-50%)scale(2.2);opacity:0}}
+/* ===================== END SCREEN ===================== */
+#end-screen{display:none;text-align:center;}
+.trophy-anim{font-size:90px;animation:trophyBounce 1s ease infinite alternate;display:block;}
+@keyframes trophyBounce{from{transform:translateY(0)rotate(-6deg)}to{transform:translateY(-18px)rotate(6deg)}}
+.end-title{font-size:28px;font-weight:900;background:linear-gradient(90deg,#ffd700,#ff6b6b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:14px 0 6px;}
+.end-score-txt{font-size:18px;color:#a8d8ea;margin-bottom:18px;}
+.end-score-txt span{color:#ffd700;font-size:26px;font-weight:900;}
+.stars-row{display:flex;justify-content:center;gap:8px;margin:8px 0 20px;}
+.star-icon{font-size:28px;animation:starPop .4s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes starPop{from{transform:scale(0)rotate(-30deg)}to{transform:scale(1)rotate(0)}}
+.end-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.end-btn{
+  padding:14px 32px;font-family:'Tajawal',Tahoma,sans-serif;font-size:17px;font-weight:700;
+  border:none;border-radius:50px;cursor:pointer;transition:transform .2s,box-shadow .2s;
+}
+.btn-memory{background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;box-shadow:0 6px 22px rgba(240,147,251,.45);}
+.btn-restart{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;box-shadow:0 6px 22px rgba(102,126,234,.45);}
+.end-btn:hover{transform:scale(1.07);}
+/* ===================== MEMORY GAME ===================== */
+#memory-section{display:none;}
+.memory-header{text-align:center;margin-bottom:20px;}
+.memory-title{font-size:clamp(20px,5vw,30px);font-weight:900;color:#ffd700;margin-bottom:6px;}
+.memory-subtitle{color:#a8d8ea;font-size:15px;}
+.memory-stats{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap;}
+.mem-stat{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:10px 22px;color:#fff;font-size:15px;font-weight:700;backdrop-filter:blur(8px);}
+.mem-stat span{color:var(--gold);}
+/* MEMORY GRID */
+.memory-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+  max-width:680px;margin:0 auto;
+}
+@media(max-width:500px){.memory-grid{grid-template-columns:repeat(3,1fr);gap:8px;}}
+/* MEMORY CARD */
+.mem-card{
+  aspect-ratio:1/1.1;cursor:pointer;perspective:600px;
+  border-radius:14px;
+}
+.mem-card-inner{
+  position:relative;width:100%;height:100%;
+  transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,2,.3,1);
+  border-radius:14px;
+}
+.mem-card.flipped .mem-card-inner{transform:rotateY(180deg);}
+.mem-card.matched .mem-card-inner{transform:rotateY(180deg);}
+.mem-card-front,.mem-card-back{
+  position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Tajawal',Tahoma,sans-serif;font-weight:700;
+  padding:8px;text-align:center;
+}
+.mem-card-front{
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  border:2px solid rgba(255,255,255,.2);
+  font-size:28px;color:#fff;
+  box-shadow:0 4px 16px rgba(102,126,234,.4);
+}
+.mem-card-front:hover{box-shadow:0 6px 24px rgba(102,126,234,.7);}
+.mem-card-back{
+  background:linear-gradient(135deg,#0d2b4e,#1a1a4e);
+  border:2px solid rgba(255,255,255,.18);
+  transform:rotateY(180deg);
+  font-size:clamp(11px,2.5vw,13px);
+  color:#e8f4f8;line-height:1.4;
+}
+.mem-card.matched .mem-card-back{
+  background:linear-gradient(135deg,rgba(67,233,123,.3),rgba(56,249,215,.2));
+  border-color:#43e97b;
+  animation:matchPulse .5s ease;
+}
+@keyframes matchPulse{0%,100%{transform:rotateY(180deg)scale(1)}50%{transform:rotateY(180deg)scale(1.08)}}
+.mem-card.wrong-flash .mem-card-inner{animation:wrongFlash .5s ease;}
+@keyframes wrongFlash{0%,100%{}50%{filter:brightness(2) hue-rotate(200deg)}}
+/* MEMORY COMPLETE */
+#memory-complete{display:none;text-align:center;animation:cardIn .6s cubic-bezier(.34,1.56,.64,1);}
+.complete-emoji{font-size:80px;animation:trophyBounce 1s ease infinite alternate;display:block;}
+</style>
+</head>
+<body>
+<div id="stars-bg"></div>
+<div class="float-deco" style="top:6%;left:4%;--d:3.5s">⚽</div>
+<div class="float-deco" style="top:15%;right:3%;--d:4.5s;font-size:26px">🌙</div>
+<div class="float-deco" style="bottom:18%;left:5%;--d:5s;font-size:30px">⭐</div>
+<div class="float-deco" style="bottom:8%;right:5%;--d:3s;font-size:24px">📖</div>
+
+<div id="app">
+  <!-- HEADER -->
+  <div class="game-header">
+    <div class="game-title">🕌 لعبة مراجعة التربية الإسلامية ⚽</div>
+    <div class="subtitle">50 سؤال — اختبر معلوماتك مع سمير!</div>
+  </div>
+
+  <!-- SCORE BAR -->
+  <div class="score-bar">
+    <div class="score-item">⚽ <span>النقاط:&nbsp;<span class="score-val" id="scoreVal">0</span></span></div>
+    <div class="score-item">🔥 <span>سلسلة:&nbsp;<span class="score-val" id="streakVal">0</span></span></div>
+    <div class="score-item">❓ <span><span class="score-val" id="qNumVal">1</span>&nbsp;/&nbsp;50</span></div>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+
+  <!-- QUIZ -->
+  <div class="card" id="quizCard">
+    <div id="quiz-content"></div>
+  </div>
+  <div id="feedback"></div>
+
+  <!-- END SCREEN -->
+  <div id="end-screen" class="card">
+    <span class="trophy-anim" id="trophyEmoji">🏆</span>
+    <div class="end-title" id="endTitle">أحسنت يا سمير!</div>
+    <div class="end-score-txt">نتيجتك: <span id="finalScore">0</span> / 50</div>
+    <div class="stars-row" id="starsRow"></div>
+    <div class="end-btns">
+      <button class="end-btn btn-memory" onclick="startMemory()">🧠 لعبة الذاكرة</button>
+      <button class="end-btn btn-restart" onclick="restartGame()">🔄 العب مجدداً</button>
+    </div>
+  </div>
+
+  <!-- MEMORY GAME -->
+  <div id="memory-section">
+    <div class="memory-header">
+      <div class="memory-title">🧠 لعبة الذاكرة الإسلامية</div>
+      <div class="memory-subtitle">طابق كل مصطلح مع معناه الصحيح!</div>
+    </div>
+    <div class="memory-stats">
+      <div class="mem-stat">💡 المحاولات: <span id="attempts">0</span></div>
+      <div class="mem-stat">✅ مطابق: <span id="matchedCount">0</span> / 12</div>
+      <div class="mem-stat">⏱️ الوقت: <span id="memTimer">0</span>ث</div>
+    </div>
+    <div class="memory-grid" id="memoryGrid"></div>
+    <div id="memory-complete" class="card" style="margin-top:24px">
+      <span class="complete-emoji">🎊</span>
+      <div class="end-title">أكملت لعبة الذاكرة! 🧠✨</div>
+      <div class="end-score-txt">في <span id="finalAttempts">0</span> محاولة و <span id="finalTime">0</span> ثانية</div>
+      <div class="end-btns" style="margin-top:16px">
+        <button class="end-btn btn-memory" onclick="resetMemory()">🔄 العب الذاكرة مجدداً</button>
+        <button class="end-btn btn-restart" onclick="restartGame()">🏠 الرجوع للأسئلة</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  50 QUESTIONS — answers shuffled each time
+// ═══════════════════════════════════════════
+const ALL_QUESTIONS = [
+  {q:"ما هو الإيمان؟",correct:"التصديق بالله وملائكته وكتبه ورسله واليوم الآخر والقدر خيره وشره",wrong:["الاستسلام لله بالتوحيد","أن تعبد الله كأنك تراه"]},
+  {q:"ما هو الإسلام؟",correct:"الاستسلام لله بالتوحيد والطاعة والخلوص من الشرك",wrong:["التصديق بالله وملائكته","الإحسان في العبادة"]},
+  {q:"ما هو الإحسان؟",correct:"أن تعبد الله كأنك تراه فإن لم تكن تراه فإنه يراك",wrong:["الإيمان بالله وحده","الصلاة في وقتها"]},
+  {q:"أسماء يوم القيامة؟",correct:"يوم الحساب، يوم الدين، الواقعة، القارعة، الحاقة، يوم الفصل",wrong:["يوم الجمعة ويوم عرفة","يوم الأضحى ويوم الفطر"]},
+  {q:"وظيفة جبريل عليه السلام؟",correct:"إيصال الوحي إلى الأنبياء",wrong:["قبض الأرواح","النفخ في الصور"]},
+  {q:"وظيفة ملك الموت؟",correct:"قبض الأرواح",wrong:["إيصال الوحي","النفخ في الصور"]},
+  {q:"وظيفة إسرافيل عليه السلام؟",correct:"النفخ في الصور يوم القيامة",wrong:["إيصال الوحي","قبض الأرواح"]},
+  {q:"أين كان يتعبد الرسول ﷺ قبل البعثة؟",correct:"غار حراء في جبل النور",wrong:["المسجد الحرام","الكعبة المشرفة"]},
+  {q:"كم كان عمر الرسول ﷺ عند نزول أول وحي؟",correct:"40 سنة",wrong:["30 سنة","50 سنة"]},
+  {q:"كيف بدأت الدعوة الإسلامية؟",correct:"بشكل سري مدة 3 سنوات ثم جهراً",wrong:["علنية منذ البداية","في المدينة المنورة"]},
+  {q:"من هم آل ياسر؟",correct:"ياسر وزوجته سمية وابنهما عمار",wrong:["أبو بكر وعمر وعثمان","الأنصار في المدينة"]},
+  {q:"من هي آسية؟",correct:"زوجة فرعون المؤمنة الصابرة",wrong:["أم موسى عليه السلام","امرأة عمران"]},
+  {q:"ماذا فعلت أم موسى حين ولدته؟",correct:"ألقته في اليمّ خوفاً من فرعون بأمر الله",wrong:["خبأته في بيتها","أرسلته إلى مدين"]},
+  {q:"كيف استقبلت امرأة عمران ولادة مريم؟",correct:"تقبلتها بالرضا والشكر وأعاذتها بالله من الشيطان",wrong:["رفضتها وحزنت","أهملتها ولم تعتنِ بها"]},
+  {q:"ما هو الصيام؟",correct:"الإمساك عن شهوتي الفم والفرج من الفجر إلى الغروب بنية التقرب",wrong:["القيام بالليل","الإمساك عن الطعام فقط"]},
+  {q:"ماذا كان يبحث إبراهيم عليه السلام؟",correct:"عن الخالق الحق الذي يستحق العبادة",wrong:["عن الأصنام","عن النجوم والكواكب"]},
+  {q:"ماذا كان يعبد آزر والد إبراهيم؟",correct:"الأصنام التي ينحتها بيده",wrong:["الله وحده","الملائكة"]},
+  {q:"هل قَبِل آزر دعوة ابنه إبراهيم؟",correct:"لا، بل رفض وهدد إبراهيم بالرجم",wrong:["نعم آمن في النهاية","تردد ثم قبل"]},
+  {q:"من هي مريم عليها السلام؟",correct:"بنت عمران وأم عيسى عليه السلام",wrong:["زوجة فرعون","أم موسى عليه السلام"]},
+  {q:"ما البشارة التي تلقتها مريم؟",correct:"بغلام اسمه عيسى وجيه في الدنيا والآخرة",wrong:["بإسحاق عليه السلام","بإسماعيل عليه السلام"]},
+  {q:"متى نزل القرآن الكريم؟",correct:"في رمضان في ليلة القدر",wrong:["في شهر رجب","في شهر شوال"]},
+  {q:"ما هي السنة النبوية؟",correct:"ما أُثر عن النبي ﷺ من قول أو فعل أو تقرير أو صفة",wrong:["القرآن الكريم","كتب الفقه الإسلامي"]},
+  {q:"ما قصة أصحاب الجنة في القرآن؟",correct:"أرادوا حرمان المساكين من حصادهم فدمر الله بستانهم عقاباً لهم",wrong:["هاجروا من ديارهم","بنوا مسجداً ونالوا الثواب"]},
+  {q:"ما أركان الإسلام الخمسة؟",correct:"الشهادتان والصلاة والزكاة والصوم والحج",wrong:["الصلاة والزكاة والجهاد والصوم والحج","الإيمان والصلاة والزكاة والصوم والحج"]},
+  {q:"ما أركان الإيمان الستة؟",correct:"بالله وملائكته وكتبه ورسله واليوم الآخر والقدر",wrong:["بالله والرسل والصلاة والزكاة والصوم والحج","بالله وملائكته والقرآن والرسل والجنة والنار"]},
+  {q:"من هو خاتم الأنبياء؟",correct:"محمد ﷺ",wrong:["عيسى عليه السلام","موسى عليه السلام"]},
+  {q:"في أي مدينة وُلد النبي ﷺ؟",correct:"مكة المكرمة",wrong:["المدينة المنورة","الطائف"]},
+  {q:"ما اسم والد إبراهيم عليه السلام؟",correct:"آزر",wrong:["عمران","يعقوب"]},
+  {q:"من هو الملك الذي رفض دعوة إبراهيم وادّعى أنه يحيي ويميت؟",correct:"النمرود",wrong:["فرعون","هامان"]},
+  {q:"ما المعجزة التي آتاها الله لموسى عليه السلام؟",correct:"العصا واليد البيضاء وفلق البحر",wrong:["إحياء الموتى وشفاء الأبرص","إنزال المائدة من السماء"]},
+  {q:"ما اسم ابن إبراهيم الذي أُمر بذبحه؟",correct:"إسماعيل عليه السلام في قول كثير من العلماء",wrong:["إسحاق عليه السلام","يعقوب عليه السلام"]},
+  {q:"ما اسم زوجة إبراهيم أم إسماعيل؟",correct:"هاجر",wrong:["سارة","مريم"]},
+  {q:"ما الكتاب المقدس الذي أُنزل على موسى؟",correct:"التوراة",wrong:["الإنجيل","الزبور"]},
+  {q:"ما الكتاب المقدس الذي أُنزل على عيسى؟",correct:"الإنجيل",wrong:["التوراة","الزبور"]},
+  {q:"ما الكتاب المقدس الذي أُنزل على داوود؟",correct:"الزبور",wrong:["التوراة","الإنجيل"]},
+  {q:"كم عدد الصلوات المفروضة في اليوم؟",correct:"خمس صلوات",wrong:["ثلاث صلوات","سبع صلوات"]},
+  {q:"ما الصلاة التي تُصلى بعد الفجر مباشرة؟",correct:"لا توجد، الصلاة التالية للفجر هي الظهر",wrong:["صلاة الضحى فريضة","صلاة الإشراق فريضة"]},
+  {q:"ما مقدار زكاة الفطر؟",correct:"صاع من طعام البلد عن كل فرد",wrong:["ربع العشر من المال","ما يعادل ثمن ذبيحة"]},
+  {q:"ما الحكمة من الصيام؟",correct:"التقوى والتقرب إلى الله وتهذيب النفس",wrong:["الحصول على الصحة الجسدية فقط","إثبات القدرة على تحمل الجوع"]},
+  {q:"من هو النبي الذي بنى الكعبة مع ابنه؟",correct:"إبراهيم عليه السلام مع إسماعيل",wrong:["موسى عليه السلام","نوح عليه السلام"]},
+  {q:"ما سبب هجرة النبي ﷺ إلى المدينة؟",correct:"الإذن الإلهي وتآمر قريش لقتله",wrong:["رغبته في التجارة","دعوة الأنصار فقط"]},
+  {q:"من هو أول خليفة للمسلمين بعد وفاة النبي ﷺ؟",correct:"أبو بكر الصديق رضي الله عنه",wrong:["عمر بن الخطاب","علي بن أبي طالب"]},
+  {q:"ما الحدث الذي يبدأ به التاريخ الهجري؟",correct:"هجرة النبي ﷺ من مكة إلى المدينة",wrong:["غزوة بدر الكبرى","فتح مكة المكرمة"]},
+  {q:"ما معنى كلمة (الله أكبر)؟",correct:"الله أعظم من كل شيء",wrong:["لا إله إلا الله","سبحان الله"]},
+  {q:"ما عدد آيات سورة الفاتحة؟",correct:"سبع آيات",wrong:["خمس آيات","تسع آيات"]},
+  {q:"ما آخر سورة نزلت في القرآن الكريم؟",correct:"سورة النصر في قول كثير من العلماء",wrong:["سورة الإخلاص","سورة العلق"]},
+  {q:"كم دامت غزوة بدر الكبرى؟",correct:"يوم واحد في السابع عشر من رمضان",wrong:["ثلاثة أيام","أسبوع كامل"]},
+  {q:"من هي أول امرأة أسلمت؟",correct:"السيدة خديجة رضي الله عنها زوجة النبي",wrong:["السيدة فاطمة الزهراء","السيدة عائشة"]},
+  {q:"ما اسم جبل نزل عليه الوحي لأول مرة؟",correct:"جبل النور (غار حراء)",wrong:["جبل ثور","جبل عرفات"]},
+  {q:"ما أول كلمات نزلت في القرآن؟",correct:"اقرأ باسم ربك الذي خلق",wrong:["الحمد لله رب العالمين","بسم الله الرحمن الرحيم"]},
+];
+
+// ═══════════════════════════════════════════
+//  MEMORY PAIRS
+// ═══════════════════════════════════════════
+const MEMORY_PAIRS = [
+  {term:"جبريل ﷺ",def:"الوحي للأنبياء"},
+  {term:"ملك الموت",def:"قبض الأرواح"},
+  {term:"إسرافيل ﷺ",def:"النفخ في الصور"},
+  {term:"غار حراء",def:"تعبد الرسول ﷺ"},
+  {term:"مريم ﷺ",def:"أم عيسى ﷺ"},
+  {term:"آسية",def:"زوجة فرعون المؤمنة"},
+  {term:"الإيمان",def:"التصديق بالله وملائكته وكتبه"},
+  {term:"الإسلام",def:"الاستسلام لله بالتوحيد"},
+  {term:"الإحسان",def:"أن تعبد الله كأنك تراه"},
+  {term:"رمضان",def:"شهر نزول القرآن"},
+  {term:"إبراهيم ﷺ",def:"بنى الكعبة مع إسماعيل"},
+  {term:"آزر",def:"أبو إبراهيم عابد الأصنام"},
+];
+
+const COLORS_CONFETTI=['#ffd700','#ff6b6b','#4ecdc4','#a29bfe','#fd79a8','#00b894','#fdcb6e','#e17055'];
+const LETTERS=['أ','ب','ج'];
+
+// ═══════════════════════════════════════════
+//  AUDIO
+// ═══════════════════════════════════════════
+const actx = new (window.AudioContext||window.webkitAudioContext)();
+document.addEventListener('click',()=>{ if(actx.state==='suspended')actx.resume(); },{capture:true});
+
+function playTones(freqs,type='sine',vol=.32){
+  try{
+    const t=actx.currentTime;
+    freqs.forEach((f,i)=>{
+      const o=actx.createOscillator(),g=actx.createGain();
+      o.connect(g);g.connect(actx.destination);
+      o.frequency.value=f;o.type=type;
+      g.gain.setValueAtTime(0,t+i*.13);
+      g.gain.linearRampToValueAtTime(vol,t+i*.13+.05);
+      g.gain.exponentialRampToValueAtTime(.001,t+i*.13+.28);
+      o.start(t+i*.13);o.stop(t+i*.13+.3);
+    });
+  }catch(e){}
+}
+function playCorrect(){playTones([523,659,784,1047],'sine',.3);}
+function playWrong(){playTones([300,220],'sawtooth',.15);}
+function playFinish(){playTones([523,659,784,880,784,659,523,659,784,1047],'sine',.28);}
+function playMemMatch(){playTones([659,784,1047],'sine',.25);}
+function playMemFail(){playTones([330,280],'triangle',.15);}
+
+// ═══════════════════════════════════════════
+//  STARS BG
+// ═══════════════════════════════════════════
+(function(){
+  const bg=document.getElementById('stars-bg');
+  for(let i=0;i<90;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*2.5+.8;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${Math.random()*3+1}s;animation-delay:${Math.random()*4}s;`;
+    bg.appendChild(s);
+  }
+})();
+
+// ═══════════════════════════════════════════
+//  CONFETTI + BURSTS
+// ═══════════════════════════════════════════
+function spawnConfetti(x,y,n=28){
+  for(let i=0;i<n;i++){
+    const el=document.createElement('div');el.className='confetti-piece';
+    const c=COLORS_CONFETTI[Math.floor(Math.random()*COLORS_CONFETTI.length)];
+    const sz=Math.random()*9+6;
+    el.style.cssText=`left:${x+(Math.random()-.5)*280}px;top:${y}px;background:${c};width:${sz}px;height:${sz}px;transform:rotate(${Math.random()*360}deg);--t:${Math.random()*.8+.8}s;border-radius:${Math.random()>.5?'50%':'3px'};`;
+    document.body.appendChild(el);setTimeout(()=>el.remove(),1900);
+  }
+}
+function spawnBurst(x,y,em){
+  const el=document.createElement('div');el.className='burst-emoji';el.textContent=em;
+  el.style.cssText=`left:${x}px;top:${y}px;font-size:30px;`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1000);
+}
+function bumpVal(id){
+  const el=document.getElementById(id);
+  el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');
+}
+
+// ═══════════════════════════════════════════
+//  QUIZ STATE
+// ═══════════════════════════════════════════
+let current=0,score=0,streak=0,answered=false;
+let quizPool=[];
+
+function shuffle(arr){return [...arr].sort(()=>Math.random()-.5);}
+
+function buildPool(){
+  quizPool=shuffle(ALL_QUESTIONS).map(q=>{
+    const opts=shuffle([q.correct,...q.wrong]);
+    return {q:q.q,options:opts,answer:opts.indexOf(q.correct)};
+  });
+}
+
+function loadQuestion(){
+  answered=false;
+  const card=document.getElementById('quizCard');
+  const content=document.getElementById('quiz-content');
+  document.getElementById('feedback').innerHTML='';
+  card.style.animation='none';void card.offsetWidth;card.style.animation='';
+
+  if(current>=50){showEndScreen();return;}
+  const q=quizPool[current];
+  const pct=(current/50)*100;
+  document.getElementById('progressBar').style.width=pct+'%';
+  document.getElementById('qNumVal').textContent=current+1;
+
+  content.innerHTML=`
+    <div class="q-number">سؤال ${current+1} من 50</div>
+    <div class="question-text">${q.q}</div>
+    <div class="options">
+      ${q.options.map((opt,i)=>`
+        <button class="opt-btn" id="opt${i}" onclick="checkAnswer(${i},this,event)">
+          <span class="opt-letter">${LETTERS[i]}</span>
+          <span>${opt}</span>
+        </button>`).join('')}
+    </div>`;
+}
+
+function checkAnswer(i,btn,e){
+  if(answered)return;answered=true;
+  const q=quizPool[current];
+  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+  const rect=btn.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+
+  if(i===q.answer){
+    btn.classList.add('correct');
+    score++;streak++;
+    document.getElementById('scoreVal').textContent=score;
+    document.getElementById('streakVal').textContent=streak;
+    bumpVal('scoreVal');bumpVal('streakVal');
+    playCorrect();
+    spawnConfetti(cx,cy);
+    spawnBurst(cx,cy,streak>=5?'🔥':streak>=3?'💥':'⭐');
+    spawnBurst(cx-70,cy-40,'✨');spawnBurst(cx+70,cy-40,'🎉');
+    const msg=streak>=5?`🔥 سلسلة ${streak}! لا يُهزم!`:streak>=3?`🔥 سلسلة ${streak}! ممتاز!`:'';
+    document.getElementById('feedback').innerHTML=`<span style="color:#43e97b;text-shadow:0 0 20px #43e97b66">✅ Bravo !!! 👏⚽ ${msg}</span>`;
+  }else{
+    btn.classList.add('wrong');
+    streak=0;document.getElementById('streakVal').textContent=0;
+    document.getElementById(`opt${q.answer}`).classList.add('correct');
+    playWrong();
+    const card=document.getElementById('quizCard');
+    card.classList.add('shake');setTimeout(()=>card.classList.remove('shake'),450);
+    document.getElementById('feedback').innerHTML=`<span style="color:#ff6b6b;text-shadow:0 0 20px #ff6b6b66">❌ غلط! الجواب الأخضر هو الصحيح 👆</span>`;
+  }
+  current++;
+  setTimeout(()=>{
+    document.getElementById('feedback').innerHTML='';
+    loadQuestion();
+  },2200);
+}
+
+function showEndScreen(){
+  document.getElementById('quizCard').style.display='none';
+  document.getElementById('feedback').innerHTML='';
+  document.getElementById('progressBar').style.width='100%';
+  const end=document.getElementById('end-screen');end.style.display='block';
+  document.getElementById('finalScore').textContent=score;
+  const pct=score/50;
+  let t,emoji;
+  if(pct>=.95){emoji='🏆';t='مثالي! أنت نجم! 🌟';}
+  else if(pct>=.8){emoji='🥇';t='ممتاز جداً يا سمير! 🎉';}
+  else if(pct>=.6){emoji='🥈';t='جيد! استمر في التعلم 💪';}
+  else{emoji='📚';t='راجع الدروس وحاول مجدداً 🤓';}
+  document.getElementById('trophyEmoji').textContent=emoji;
+  document.getElementById('endTitle').textContent=t;
+  const stars=Math.round(pct*5);
+  const row=document.getElementById('starsRow');row.innerHTML='';
+  for(let i=0;i<5;i++){
+    const s=document.createElement('span');s.className='star-icon';
+    s.style.animationDelay=(i*.1)+'s';
+    s.textContent=i<stars?'⭐':'☆';
+    s.style.color=i<stars?'#ffd700':'#444';
+    row.appendChild(s);
+  }
+  playFinish();
+  for(let i=0;i<6;i++)setTimeout(()=>spawnConfetti(Math.random()*window.innerWidth,0,20),i*180);
+}
+
+function restartGame(){
+  current=0;score=0;streak=0;answered=false;
+  document.getElementById('scoreVal').textContent=0;
+  document.getElementById('streakVal').textContent=0;
+  document.getElementById('qNumVal').textContent=1;
+  document.getElementById('progressBar').style.width='0%';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('quizCard').style.display='';
+  document.getElementById('memory-section').style.display='none';
+  document.getElementById('memory-complete').style.display='none';
+  document.querySelector('.game-header').style.display='';
+  document.querySelector('.score-bar').style.display='';
+  document.querySelector('.progress-wrap').style.display='';
+  buildPool();
+  loadQuestion();
+}
+
+// ═══════════════════════════════════════════
+//  MEMORY GAME
+// ═══════════════════════════════════════════
+let memCards=[], memFlipped=[], memMatched=0, memAttempts=0;
+let memTimerVal=0, memTimerInt=null, memLocked=false;
+
+function startMemory(){
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('quizCard').style.display='none';
+  document.querySelector('.game-header').style.display='none';
+  document.querySelector('.score-bar').style.display='none';
+  document.querySelector('.progress-wrap').style.display='none';
+  document.getElementById('memory-section').style.display='block';
+  document.getElementById('memory-complete').style.display='none';
+  buildMemoryGrid();
+}
+
+function buildMemoryGrid(){
+  memFlipped=[];memMatched=0;memAttempts=0;memLocked=false;
+  document.getElementById('attempts').textContent=0;
+  document.getElementById('matchedCount').textContent=0;
+  document.getElementById('memTimer').textContent=0;
+  clearInterval(memTimerInt);memTimerVal=0;
+  memTimerInt=setInterval(()=>{
+    memTimerVal++;document.getElementById('memTimer').textContent=memTimerVal;
+  },1000);
+
+  // Build pairs: each pair has a term card and a def card, both share same pairId
+  const pairs=shuffle(MEMORY_PAIRS);
+  const deck=[];
+  pairs.forEach((p,idx)=>{
+    deck.push({id:`t${idx}`,pairId:idx,label:p.term,type:'term'});
+    deck.push({id:`d${idx}`,pairId:idx,label:p.def,type:'def'});
+  });
+  const shuffled=shuffle(deck);
+  memCards=shuffled;
+
+  const grid=document.getElementById('memoryGrid');
+  grid.innerHTML='';
+  shuffled.forEach(card=>{
+    const el=document.createElement('div');
+    el.className='mem-card';
+    el.dataset.id=card.id;
+    el.innerHTML=`
+      <div class="mem-card-inner">
+        <div class="mem-card-front">${card.type==='term'?'📘':'💡'}</div>
+        <div class="mem-card-back">${card.label}</div>
+      </div>`;
+    el.addEventListener('click',()=>flipMemCard(el,card));
+    grid.appendChild(el);
+  });
+}
+
+function flipMemCard(el,card){
+  if(memLocked)return;
+  if(el.classList.contains('flipped')||el.classList.contains('matched'))return;
+  el.classList.add('flipped');
+  memFlipped.push({el,card});
+  if(memFlipped.length===2){
+    memLocked=true;
+    memAttempts++;
+    document.getElementById('attempts').textContent=memAttempts;
+    const [a,b]=memFlipped;
+    if(a.card.pairId===b.card.pairId && a.card.type!==b.card.type){
+      // MATCH
+      setTimeout(()=>{
+        a.el.classList.add('matched');b.el.classList.add('matched');
+        a.el.classList.remove('flipped');b.el.classList.remove('flipped');
+        memMatched++;document.getElementById('matchedCount').textContent=memMatched;
+        playMemMatch();
+        const cx=window.innerWidth/2,cy=window.innerHeight/2;
+        spawnConfetti(cx,cy,18);spawnBurst(cx,cy,'🎯');
+        memFlipped=[];memLocked=false;
+        if(memMatched===12){setTimeout(showMemoryComplete,500);}
+      },600);
+    }else{
+      // NO MATCH
+      a.el.classList.add('wrong-flash');b.el.classList.add('wrong-flash');
+      playMemFail();
+      setTimeout(()=>{
+        a.el.classList.remove('flipped','wrong-flash');
+        b.el.classList.remove('flipped','wrong-flash');
+        memFlipped=[];memLocked=false;
+      },1000);
+    }
+  }
+}
+
+function showMemoryComplete(){
+  clearInterval(memTimerInt);
+  document.getElementById('memory-complete').style.display='block';
+  document.getElementById('finalAttempts').textContent=memAttempts;
+  document.getElementById('finalTime').textContent=memTimerVal;
+  playFinish();
+  for(let i=0;i<8;i++)setTimeout(()=>spawnConfetti(Math.random()*window.innerWidth,0,22),i*150);
+}
+
+function resetMemory(){
+  document.getElementById('memory-complete').style.display='none';
+  buildMemoryGrid();
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+buildPool();
+loadQuestion();
+</script>
+</body>
+</html>
