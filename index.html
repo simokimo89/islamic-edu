@@ -38,6 +38,13 @@ body{
 }
 @keyframes gradMove{0%{background-position:0%}100%{background-position:400%}}
 .subtitle{color:#a8d8ea;font-size:15px;margin-top:4px;}
+/* SECTION BADGE */
+.section-badge{
+  display:inline-block;background:linear-gradient(135deg,#f093fb,#f5576c);
+  color:#fff;font-size:14px;font-weight:700;padding:8px 18px;border-radius:50px;
+  margin-bottom:16px;text-align:center;width:100%;
+  animation:slideDown .5s cubic-bezier(.34,1.56,.64,1);
+}
 /* SCORE BAR */
 .score-bar{
   display:flex;justify-content:space-around;align-items:center;
@@ -106,10 +113,24 @@ body{
 @keyframes confettiFall{0%{transform:translateY(0)rotate(0deg);opacity:1}100%{transform:translateY(110vh)rotate(720deg);opacity:0}}
 .burst-emoji{position:fixed;pointer-events:none;z-index:9999;animation:burstOut .9s ease forwards;}
 @keyframes burstOut{0%{transform:translate(-50%,-50%)scale(0);opacity:1}60%{transform:translate(-50%,-50%)scale(1.4)}100%{transform:translate(-50%,-50%)scale(2.2);opacity:0}}
+/* ===================== SECTION COMPLETE SCREEN ===================== */
+#section-complete{display:none;text-align:center;}
+.section-trophy{font-size:80px;animation:trophyBounce 1s ease infinite alternate;display:block;}
+@keyframes trophyBounce{from{transform:translateY(0)rotate(-6deg)}to{transform:translateY(-18px)rotate(6deg)}}
+.section-title{font-size:26px;font-weight:900;background:linear-gradient(90deg,#f093fb,#f5576c);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:14px 0 10px;}
+.section-score{font-size:20px;color:#a8d8ea;margin:12px 0;line-height:1.8;}
+.section-score span{color:#ffd700;font-size:28px;font-weight:900;}
+.section-msg{font-size:16px;color:#43e97b;margin:16px 0;font-style:italic;}
+.continue-btn{
+  padding:14px 32px;font-family:'Tajawal',Tahoma,sans-serif;font-size:16px;font-weight:700;
+  background:linear-gradient(135deg,#4ecdc4,#38f9d7);color:#fff;
+  border:none;border-radius:50px;cursor:pointer;transition:transform .2s,box-shadow .2s;
+  box-shadow:0 6px 22px rgba(78,205,196,.45);margin-top:20px;
+}
+.continue-btn:hover{transform:scale(1.07);}
 /* ===================== END SCREEN ===================== */
 #end-screen{display:none;text-align:center;}
 .trophy-anim{font-size:90px;animation:trophyBounce 1s ease infinite alternate;display:block;}
-@keyframes trophyBounce{from{transform:translateY(0)rotate(-6deg)}to{transform:translateY(-18px)rotate(6deg)}}
 .end-title{font-size:28px;font-weight:900;background:linear-gradient(90deg,#ffd700,#ff6b6b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:14px 0 6px;}
 .end-score-txt{font-size:18px;color:#a8d8ea;margin-bottom:18px;}
 .end-score-txt span{color:#ffd700;font-size:26px;font-weight:900;}
@@ -194,8 +215,11 @@ body{
   <!-- HEADER -->
   <div class="game-header">
     <div class="game-title">🕌 لعبة مراجعة التربية الإسلامية ⚽</div>
-    <div class="subtitle">50 سؤال — اختبر معلوماتك مع جنات!</div>
+    <div class="subtitle">50 سؤال في 5 مراحل — اختبر معلوماتك مع جنات!</div>
   </div>
+
+  <!-- SECTION BADGE -->
+  <div class="section-badge" id="sectionBadge">المرحلة الأولى: الأساسيات الإسلامية</div>
 
   <!-- SCORE BAR -->
   <div class="score-bar">
@@ -211,11 +235,24 @@ body{
   </div>
   <div id="feedback"></div>
 
+  <!-- SECTION COMPLETE SCREEN -->
+  <div id="section-complete" class="card">
+    <span class="section-trophy" id="sectionEmoji">🎯</span>
+    <div class="section-title" id="sectionCompleteTitle">أحسنت! أكملت المرحلة الأولى!</div>
+    <div class="section-score">
+      نتيجتك في هذه المرحلة:<br>
+      <span id="sectionScore">0</span> / 10
+    </div>
+    <div class="section-msg" id="sectionMsg">رائع! استمر في المسيرة! 🚀</div>
+    <button class="continue-btn" onclick="continuToNextSection()">متابعة إلى المرحلة التالية ➡️</button>
+  </div>
+
   <!-- END SCREEN -->
   <div id="end-screen" class="card">
     <span class="trophy-anim" id="trophyEmoji">🏆</span>
-    <div class="end-title" id="endTitle">أحسنت يا جنات!</div>
-    <div class="end-score-txt">نتيجتك: <span id="finalScore">0</span> / 50</div>
+    <div class="end-title" id="endTitle">مبروك يا جنات! 🎉</div>
+    <div class="end-score-txt">نتيجتك النهائية: <span id="finalScore">0</span> / 50</div>
+    <div id="finalMsg" style="font-size:16px;color:#a8d8ea;margin:16px 0;line-height:1.8;"></div>
     <div class="stars-row" id="starsRow"></div>
     <div class="end-btns">
       <button class="end-btn btn-memory" onclick="startMemory()">🧠 لعبة الذاكرة</button>
@@ -304,6 +341,22 @@ const ALL_QUESTIONS = [
   {q:"ما أول كلمات نزلت في القرآن؟",correct:"اقرأ باسم ربك الذي خلق",wrong:["الحمد لله رب العالمين","بسم الله الرحمن الرحيم"]}
 ];
 
+const SECTIONS = [
+  {name:"الأساسيات الإسلامية 📕",emoji:"📕",start:0,end:10},
+  {name:"أنبياء ومعجزات 🕌",emoji:"🕌",start:10,end:20},
+  {name:"الكتب السماوية والعبادات 📖",emoji:"📖",start:20,end:30},
+  {name:"الأركان والمفاهيم 🕌",emoji:"🕌",start:30,end:40},
+  {name:"النبي محمد والتاريخ الإسلامي ⭐",emoji:"⭐",start:40,end:50}
+];
+
+const SECTION_MSGS = [
+  "🎯 ممتاز! أنت تفهم الأساسيات الإسلامية بشكل جيد!",
+  "🌟 رائع! معلوماتك عن الأنبياء والمعجزات قوية!",
+  "💪 ممتاز! أنت متقن للكتب السماوية والعبادات!",
+  "🚀 استثنائي! فهمك للأركان والمفاهيم عميق!",
+  "👑 مثالي! أنت خبير بالنبي محمد والتاريخ الإسلامي!"
+];
+
 // ═══════════════════════════════════════════
 //  MEMORY PAIRS
 // ═══════════════════════════════════════════
@@ -387,9 +440,11 @@ function bumpVal(id){
 }
 
 // ═══════════════════════════════════════════
-//  QUIZ STATE
+//  QUIZ STATE WITH SECTIONS
 // ═══════════════════════════════════════════
 let current=0,score=0,streak=0,answered=false;
+let currentSection=0;
+let sectionScores=[0,0,0,0,0];
 let quizPool=[];
 
 function shuffle(arr){return [...arr].sort(()=>Math.random()-.5);}
@@ -401,6 +456,11 @@ function buildPool(){
   });
 }
 
+function updateSectionBadge(){
+  const section=SECTIONS[currentSection];
+  document.getElementById('sectionBadge').innerHTML=`المرحلة ${currentSection+1}/5: ${section.name}`;
+}
+
 function loadQuestion(){
   answered=false;
   const card=document.getElementById('quizCard');
@@ -408,7 +468,9 @@ function loadQuestion(){
   document.getElementById('feedback').innerHTML='';
   card.style.animation='none';void card.offsetWidth;card.style.animation='';
 
+  const section=SECTIONS[currentSection];
   if(current>=50){showEndScreen();return;}
+  
   const q=quizPool[current];
   const pct=(current/50)*100;
   document.getElementById('progressBar').style.width=pct+'%';
@@ -435,6 +497,7 @@ function checkAnswer(i,btn,e){
   if(i===q.answer){
     btn.classList.add('correct');
     score++;streak++;
+    sectionScores[currentSection]++;
     document.getElementById('scoreVal').textContent=score;
     document.getElementById('streakVal').textContent=streak;
     bumpVal('scoreVal');bumpVal('streakVal');
@@ -454,10 +517,43 @@ function checkAnswer(i,btn,e){
     document.getElementById('feedback').innerHTML=`<span style="color:#ff6b6b;text-shadow:0 0 20px #ff6b6b66">❌ غلط! الجواب الأخضر هو الصحيح 👆</span>`;
   }
   current++;
-  setTimeout(()=>{
-    document.getElementById('feedback').innerHTML='';
-    loadQuestion();
-  },2200);
+  
+  // Check if section is complete
+  const section=SECTIONS[currentSection];
+  if(current%10===0 && current<50){
+    setTimeout(showSectionComplete,2200);
+  }else{
+    setTimeout(()=>{
+      document.getElementById('feedback').innerHTML='';
+      loadQuestion();
+    },2200);
+  }
+}
+
+function showSectionComplete(){
+  const section=SECTIONS[currentSection];
+  const sectionScore=sectionScores[currentSection];
+  
+  document.getElementById('quizCard').style.display='none';
+  document.getElementById('feedback').innerHTML='';
+  document.getElementById('section-complete').style.display='block';
+  
+  document.getElementById('sectionEmoji').textContent=section.emoji;
+  document.getElementById('sectionCompleteTitle').textContent=`أحسنت! أكملت ${section.name}`;
+  document.getElementById('sectionScore').textContent=sectionScore;
+  document.getElementById('sectionMsg').textContent=SECTION_MSGS[currentSection];
+  
+  playFinish();
+  for(let i=0;i<4;i++)setTimeout(()=>spawnConfetti(Math.random()*window.innerWidth,0,20),i*180);
+}
+
+function continuToNextSection(){
+  currentSection++;
+  document.getElementById('section-complete').style.display='none';
+  document.getElementById('quizCard').style.display='';
+  updateSectionBadge();
+  document.getElementById('feedback').innerHTML='';
+  loadQuestion();
 }
 
 function showEndScreen(){
@@ -466,14 +562,36 @@ function showEndScreen(){
   document.getElementById('progressBar').style.width='100%';
   const end=document.getElementById('end-screen');end.style.display='block';
   document.getElementById('finalScore').textContent=score;
+  
   const pct=score/50;
-  let t,emoji;
-  if(pct>=.95){emoji='🏆';t='مثالي! أنت نجم! 🌟';}
-  else if(pct>=.8){emoji='🥇';t='ممتاز جداً يا جنات! 🎉';}
-  else if(pct>=.6){emoji='🥈';t='جيد! استمر في التعلم 💪';}
-  else{emoji='📚';t='راجع الدروس وحاول مجدداً 🤓';}
+  let emoji,title,msg='';
+  
+  if(pct>=.95){
+    emoji='🏆';title='مثالي يا جنات! أنت نجم حقيقي! 🌟';
+    msg='إتقانك للتربية الإسلامية رائع جداً! أنت تستحق التهنئة 🎊';
+  }else if(pct>=.8){
+    emoji='🥇';title='ممتاز جداً يا جنات! 🎉';
+    msg='أداؤك ممتاز! استمر في التعلم والتطور 💪';
+  }else if(pct>=.6){
+    emoji='🥈';title='جيد! عمل رائع 🎯';
+    msg='أداؤك جيد! تابع الدراسة ستصل لمستويات أعلى 🚀';
+  }else if(pct>=.4){
+    emoji='📚';title='تحتاج بعض المراجعة 📖';
+    msg='استمر في الدراسة، كل محاولة تقربك من الإتقان 🔄';
+  }else{
+    emoji='💪';title='لا تستسلم! 🌟';
+    msg='هذه بداية رائعة! مع المزيد من الممارسة ستتحسن 🎯';
+  }
+  
   document.getElementById('trophyEmoji').textContent=emoji;
-  document.getElementById('endTitle').textContent=t;
+  document.getElementById('endTitle').textContent=title;
+  document.getElementById('finalMsg').innerHTML=`<strong>${msg}</strong><br><br>📊 <strong>ملخص أدائك:</strong><br>
+  المرحلة 1: ${sectionScores[0]}/10 🥋<br>
+  المرحلة 2: ${sectionScores[1]}/10 🕌<br>
+  المرحلة 3: ${sectionScores[2]}/10 📖<br>
+  المرحلة 4: ${sectionScores[3]}/10 🏛️<br>
+  المرحلة 5: ${sectionScores[4]}/10 ⭐`;
+  
   const stars=Math.round(pct*5);
   const row=document.getElementById('starsRow');row.innerHTML='';
   for(let i=0;i<5;i++){
@@ -483,23 +601,28 @@ function showEndScreen(){
     s.style.color=i<stars?'#ffd700':'#444';
     row.appendChild(s);
   }
+  
   playFinish();
   for(let i=0;i<6;i++)setTimeout(()=>spawnConfetti(Math.random()*window.innerWidth,0,20),i*180);
 }
 
 function restartGame(){
   current=0;score=0;streak=0;answered=false;
+  currentSection=0;
+  sectionScores=[0,0,0,0,0];
   document.getElementById('scoreVal').textContent=0;
   document.getElementById('streakVal').textContent=0;
   document.getElementById('qNumVal').textContent=1;
   document.getElementById('progressBar').style.width='0%';
   document.getElementById('end-screen').style.display='none';
+  document.getElementById('section-complete').style.display='none';
   document.getElementById('quizCard').style.display='';
   document.getElementById('memory-section').style.display='none';
   document.getElementById('memory-complete').style.display='none';
   document.querySelector('.game-header').style.display='';
   document.querySelector('.score-bar').style.display='';
   document.querySelector('.progress-wrap').style.display='';
+  updateSectionBadge();
   buildPool();
   loadQuestion();
 }
@@ -531,7 +654,6 @@ function buildMemoryGrid(){
     memTimerVal++;document.getElementById('memTimer').textContent=memTimerVal;
   },1000);
 
-  // Build pairs: each pair has a term card and a def card, both share same pairId
   const pairs=shuffle(MEMORY_PAIRS);
   const deck=[];
   pairs.forEach((p,idx)=>{
@@ -568,7 +690,6 @@ function flipMemCard(el,card){
     document.getElementById('attempts').textContent=memAttempts;
     const [a,b]=memFlipped;
     if(a.card.pairId===b.card.pairId && a.card.type!==b.card.type){
-      // MATCH
       setTimeout(()=>{
         a.el.classList.add('matched');b.el.classList.add('matched');
         a.el.classList.remove('flipped');b.el.classList.remove('flipped');
@@ -580,7 +701,6 @@ function flipMemCard(el,card){
         if(memMatched===12){setTimeout(showMemoryComplete,500);}
       },600);
     }else{
-      // NO MATCH
       a.el.classList.add('wrong-flash');b.el.classList.add('wrong-flash');
       playMemFail();
       setTimeout(()=>{
@@ -610,6 +730,7 @@ function resetMemory(){
 //  INIT
 // ═══════════════════════════════════════════
 buildPool();
+updateSectionBadge();
 loadQuestion();
 </script>
 </body>
